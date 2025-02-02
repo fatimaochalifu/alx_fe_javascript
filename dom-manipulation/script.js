@@ -8,19 +8,74 @@ function saveQuotes() {
     localStorage.setItem("quotes", JSON.stringify(quotes));
 }
 
+// Populate the categories in the dropdown dynamically
+function populateCategories() {
+    const categoryFilter = document.getElementById("categoryFilter");
+    const categories = ['all', ...new Set(quotes.map(quote => quote.category))];
+    
+    // Clear existing options in the dropdown (except "All Categories")
+    categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+    
+    // Add unique categories to the dropdown
+    categories.forEach(category => {
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        categoryFilter.appendChild(option);
+    });
+}
+
+// Show random quote based on selected category
 function showRandomQuote() {
+    const category = document.getElementById("categoryFilter").value;
+    const filteredQuotes = category === "all" ? quotes : quotes.filter(quote => quote.category === category);
+    
+    const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
+    const quote = filteredQuotes[randomIndex];
     const quoteDisplay = document.getElementById("quoteDisplay");
-    const randomIndex = Math.floor(Math.random() * quotes.length);
-    const quote = quotes[randomIndex];
     quoteDisplay.innerHTML = `<p>"${quote.text}" - <strong>${quote.category}</strong></p>`;
     
     // Store the last viewed quote in session storage
     sessionStorage.setItem("lastViewedQuote", JSON.stringify(quote));
 }
 
-document.getElementById("newQuote").addEventListener("click", showRandomQuote);
+// Filter quotes based on selected category
+function filterQuotes() {
+    const selectedCategory = document.getElementById("categoryFilter").value;
+    const filteredQuotes = selectedCategory === "all" ? quotes : quotes.filter(quote => quote.category === selectedCategory);
+    
+    // Display filtered quotes
+    displayQuotes(filteredQuotes);
+    
+    // Save the last selected category in localStorage
+    localStorage.setItem("selectedCategory", selectedCategory);
+}
 
-// Check for the addQuote function
+// Display quotes based on selected category
+function displayQuotes(filteredQuotes) {
+    const quotesContainer = document.getElementById("quotesContainer");
+    quotesContainer.innerHTML = ""; // Clear existing quotes
+    
+    filteredQuotes.forEach(quote => {
+        const quoteElement = document.createElement("div");
+        quoteElement.innerHTML = `<p>"${quote.text}" - <strong>${quote.category}</strong></p>`;
+        quotesContainer.appendChild(quoteElement);
+    });
+}
+
+// Remember the last selected category on page load
+function initialize() {
+    populateCategories();
+    
+    // Get the last selected category from localStorage
+    const selectedCategory = localStorage.getItem("selectedCategory") || "all";
+    document.getElementById("categoryFilter").value = selectedCategory;
+    
+    // Filter quotes based on last selected category
+    filterQuotes();
+}
+
+// Add new quote and category
 function addQuote() {
     const newQuoteText = document.getElementById("newQuoteText").value.trim();
     const newQuoteCategory = document.getElementById("newQuoteCategory").value.trim();
@@ -32,6 +87,10 @@ function addQuote() {
     
     quotes.push({ text: newQuoteText, category: newQuoteCategory });
     saveQuotes();
+    
+    // Update categories in the dropdown if a new category is added
+    populateCategories();
+    
     document.getElementById("newQuoteText").value = "";
     document.getElementById("newQuoteCategory").value = "";
     alert("Quote added successfully!");
@@ -81,3 +140,10 @@ function importFromJsonFile(event) {
 
 // Call the function to add the form to the DOM
 createAddQuoteForm();
+
+// Call the initialize function when the page loads
+window.onload = initialize;
+
+// Event listener for the filter change
+document.getElementById("categoryFilter").addEventListener("change", filterQuotes);
+document.getElementById("newQuote").addEventListener("click", showRandomQuote);
