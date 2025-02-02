@@ -2,7 +2,7 @@
 const SERVER_URL = 'https://jsonplaceholder.typicode.com/posts';
 
 // Retrieve quotes from local storage or use default
-const quotes = JSON.parse(localStorage.getItem("quotes")) || [
+let quotes = JSON.parse(localStorage.getItem("quotes")) || [
     { text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Motivation" },
     { text: "Do what you can, with what you have, where you are.", category: "Inspiration" },
     { text: "Success is not final, failure is not fatal: It is the courage to continue that counts.", category: "Perseverance" }
@@ -167,7 +167,28 @@ function saveQuotes() {
     localStorage.setItem("quotes", JSON.stringify(quotes));
 }
 
-// Function to create and append the add quote form
+// Post the new quote to the server
+async function postQuoteToServer(quoteText, quoteCategory) {
+    try {
+        const response = await fetch(SERVER_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                title: quoteText, // Simulate sending quote text as "title"
+                category: quoteCategory
+            })
+        });
+
+        const result = await response.json();
+        console.log("Posted quote:", result);
+    } catch (error) {
+        console.error("Error posting quote to server:", error);
+    }
+}
+
+// Create and append the add quote form
 function createAddQuoteForm() {
     const formContainer = document.createElement("div");
     formContainer.innerHTML = `
