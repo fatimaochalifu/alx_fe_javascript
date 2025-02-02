@@ -8,8 +8,8 @@ const quotes = JSON.parse(localStorage.getItem("quotes")) || [
     { text: "Success is not final, failure is not fatal: It is the courage to continue that counts.", category: "Perseverance" }
 ];
 
-// Simulate server fetch (periodically simulate server data update)
-function fetchServerQuotes() {
+// Fetch quotes from the server and sync with local quotes
+function fetchQuotesFromServer() {
     // Simulating fetching updated data from the server (mock response)
     fetch(SERVER_URL)
         .then(response => response.json())
@@ -27,7 +27,7 @@ function fetchServerQuotes() {
 }
 
 // Periodically check for new data from the server (every 10 seconds)
-setInterval(fetchServerQuotes, 10000); // Set to 10 seconds for testing purposes
+setInterval(fetchQuotesFromServer, 10000); // Set to 10 seconds for testing purposes
 
 // Function to resolve data sync and handle conflicts
 function resolveDataSync(serverQuotes) {
