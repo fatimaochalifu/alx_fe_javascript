@@ -1,11 +1,62 @@
+// Simulate a mock server URL (JSONPlaceholder is used for demonstration purposes)
+const SERVER_URL = 'https://jsonplaceholder.typicode.com/posts';
+
+// Retrieve quotes from local storage or use default
 const quotes = JSON.parse(localStorage.getItem("quotes")) || [
     { text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Motivation" },
     { text: "Do what you can, with what you have, where you are.", category: "Inspiration" },
     { text: "Success is not final, failure is not fatal: It is the courage to continue that counts.", category: "Perseverance" }
 ];
 
-function saveQuotes() {
-    localStorage.setItem("quotes", JSON.stringify(quotes));
+// Simulate server fetch (periodically simulate server data update)
+function fetchServerQuotes() {
+    // Simulating fetching updated data from the server (mock response)
+    fetch(SERVER_URL)
+        .then(response => response.json())
+        .then(data => {
+            // Assuming the mock server returns an array of posts
+            // Simulate that server data is being updated by the mock server
+            const serverQuotes = data.map(item => ({
+                text: item.title,
+                category: "Server Category" // Simulate a generic category for simplicity
+            }));
+
+            resolveDataSync(serverQuotes);
+        })
+        .catch(err => console.error('Error fetching from server:', err));
+}
+
+// Periodically check for new data from the server (every 10 seconds)
+setInterval(fetchServerQuotes, 10000); // Set to 10 seconds for testing purposes
+
+// Function to resolve data sync and handle conflicts
+function resolveDataSync(serverQuotes) {
+    const localQuotesSet = new Set(quotes.map(quote => quote.text));
+    const newServerQuotes = serverQuotes.filter(quote => !localQuotesSet.has(quote.text));
+    
+    if (newServerQuotes.length > 0) {
+        // Handle the conflict resolution, prefer server data
+        quotes.push(...newServerQuotes);
+        saveQuotes();
+
+        // Notify user of the update
+        notifyUser("New quotes have been added from the server.");
+    } else {
+        console.log('No new quotes from the server.');
+    }
+}
+
+// Notify user about the sync/update process
+function notifyUser(message) {
+    const notification = document.createElement("div");
+    notification.className = "notification";
+    notification.innerText = message;
+    document.body.appendChild(notification);
+
+    // Remove notification after 5 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
 }
 
 // Populate the categories in the dropdown dynamically
@@ -85,6 +136,12 @@ function addQuote() {
         return;
     }
     
+    // Check if the quote already exists
+    if (quotes.some(quote => quote.text === newQuoteText)) {
+        alert("This quote already exists.");
+        return;
+    }
+
     quotes.push({ text: newQuoteText, category: newQuoteCategory });
     saveQuotes();
     
@@ -94,6 +151,11 @@ function addQuote() {
     document.getElementById("newQuoteText").value = "";
     document.getElementById("newQuoteCategory").value = "";
     alert("Quote added successfully!");
+}
+
+// Function to save quotes to localStorage
+function saveQuotes() {
+    localStorage.setItem("quotes", JSON.stringify(quotes));
 }
 
 // Function to create and append the add quote form
@@ -128,7 +190,12 @@ function importFromJsonFile(event) {
     fileReader.onload = function(event) {
         try {
             const importedQuotes = JSON.parse(event.target.result);
-            quotes.push(...importedQuotes);
+            importedQuotes.forEach(quote => {
+                // Check if the quote already exists
+                if (!quotes.some(existingQuote => existingQuote.text === quote.text)) {
+                    quotes.push(quote);
+                }
+            });
             saveQuotes();
             alert('Quotes imported successfully!');
         } catch (error) {
