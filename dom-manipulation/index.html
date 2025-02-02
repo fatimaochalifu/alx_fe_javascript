@@ -1,30 +1,31 @@
 <!DOCTYPE html>
-  <html lang="en">
-  <head>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Quote Generator</title>
-  </head>
-  <body>
-    <h1>Dynamic Quote Generator</h1>
-    <div id="quoteDisplay"></div>
+    <title>Quote Generator</title>
+</head>
+<body>
 
-    <button id="newQuote">Show New Quote</button>
+    <h1>Quote Generator</h1>
 
-    <div>
-        <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
-        <input id="newQuoteCategory" type="text" placeholder="Enter quote category" />
-        <button onclick="addQuote()">Add Quote</button>
-      </div>
+    <div id="quoteDisplay">
+        <p>"The only limit to our realization of tomorrow is our doubts of today." - <strong>Motivation</strong></p>
+    </div>
 
-    <button onclick="exportToJsonFile()">Export Quotes</button>
-    <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />
-      
-    <select id="categoryFilter" onchange="filterQuotes()">
+    <label for="categoryFilter">Filter by category:</label>
+    <select id="categoryFilter">
         <option value="all">All Categories</option>
-        <!-- Dynamically populated categories -->
-      </select>
-    
+    </select>
+
+    <div id="quotesContainer"></div>
+
+    <div id="addQuoteForm">
+        <input type="text" id="newQuoteText" placeholder="Enter new quote" />
+        <input type="text" id="newQuoteCategory" placeholder="Enter quote category" />
+        <button id="newQuote">Add Quote</button>
+    </div>
+
     <script src="script.js"></script>
-  </body>
-  </html>
+</body>
+</html>
