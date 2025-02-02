@@ -8,62 +8,48 @@ const quotes = JSON.parse(localStorage.getItem("quotes")) || [
     { text: "Success is not final, failure is not fatal: It is the courage to continue that counts.", category: "Perseverance" }
 ];
 
-// Function to post new quote to the server
-async function postQuoteToServer(newQuoteText, newQuoteCategory) {
+// Function to sync quotes between local storage and server
+async function syncQuotes() {
     try {
-        // Sending POST request with required headers
-        const response = await fetch(SERVER_URL, {
-            method: 'POST', // Set the HTTP method to POST
-            headers: {
-                'Content-Type': 'application/json', // Set content type to JSON
-            },
-            body: JSON.stringify({
-                title: newQuoteText,  // Simulate sending quote text as "title"
-                body: newQuoteCategory // Simulate sending category as "body"
-            })
-        });
-
-        const result = await response.json();
-        console.log("New quote added to server:", result);
-        return result;  // Return the added quote from server
-    } catch (error) {
-        console.error('Error posting quote:', error);
-    }
-}
-
-// Simulate fetching quotes from the server
-async function fetchQuotesFromServer() {
-    try {
+        // Fetch the latest quotes from the server
         const response = await fetch(SERVER_URL);
-        const data = await response.json();
+        const serverQuotes = await response.json();
 
-        // Simulate that server data is being updated by the mock server
-        const serverQuotes = data.map(item => ({
-            text: item.title,
+        // Convert server quotes to match local quote format
+        const serverQuotesFormatted = serverQuotes.map(item => ({
+            text: item.title, // Simulate sending quote text as "title"
             category: "Server Category" // Simulate a generic category for simplicity
         }));
 
-        resolveDataSync(serverQuotes);
-    } catch (err) {
-        console.error('Error fetching from server:', err);
+        // Merge local quotes with server quotes, prioritizing server data
+        const mergedQuotes = mergeQuotes(quotes, serverQuotesFormatted);
+
+        // Update local storage with the merged quotes
+        localStorage.setItem("quotes", JSON.stringify(mergedQuotes));
+
+        // Optionally, notify the user that the sync is complete
+        notifyUser("Quotes synced successfully!");
+
+        // Update the UI with the latest quotes
+        displayQuotes(mergedQuotes);
+    } catch (error) {
+        console.error("Error syncing quotes:", error);
+        notifyUser("Error syncing quotes with the server.");
     }
 }
 
-// Resolve the syncing of server data and handle conflicts
-function resolveDataSync(serverQuotes) {
-    const localQuotesSet = new Set(quotes.map(quote => quote.text));
-    const newServerQuotes = serverQuotes.filter(quote => !localQuotesSet.has(quote.text));
-    
-    if (newServerQuotes.length > 0) {
-        // Handle the conflict resolution, prefer server data
-        quotes.push(...newServerQuotes);
-        saveQuotes();
+// Function to merge local and server quotes (server data takes precedence)
+function mergeQuotes(localQuotes, serverQuotes) {
+    const mergedQuotes = [...localQuotes];
 
-        // Notify user of the update
-        notifyUser("New quotes have been added from the server.");
-    } else {
-        console.log('No new quotes from the server.');
-    }
+    // Add server quotes that don't already exist locally
+    serverQuotes.forEach(serverQuote => {
+        if (!localQuotes.some(localQuote => localQuote.text === serverQuote.text)) {
+            mergedQuotes.push(serverQuote);
+        }
+    });
+
+    return mergedQuotes;
 }
 
 // Notify user about the sync/update process
@@ -237,3 +223,9 @@ window.onload = initialize;
 // Event listener for the filter change
 document.getElementById("categoryFilter").addEventListener("change", filterQuotes);
 document.getElementById("newQuote").addEventListener("click", showRandomQuote);
+
+// Add a sync button to sync data with the server
+const syncButton = document.createElement("button");
+syncButton.innerText = "Sync Quotes with Server";
+syncButton.onclick = syncQuotes;
+document.body.appendChild(syncButton);
