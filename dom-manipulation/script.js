@@ -8,14 +8,35 @@ const quotes = JSON.parse(localStorage.getItem("quotes")) || [
     { text: "Success is not final, failure is not fatal: It is the courage to continue that counts.", category: "Perseverance" }
 ];
 
-// Fetch quotes from the server and sync with local quotes
+// Function to post new quote to the server
+async function postQuoteToServer(newQuoteText, newQuoteCategory) {
+    try {
+        // Sending POST request with required headers
+        const response = await fetch(SERVER_URL, {
+            method: 'POST', // Set the HTTP method to POST
+            headers: {
+                'Content-Type': 'application/json', // Set content type to JSON
+            },
+            body: JSON.stringify({
+                title: newQuoteText,  // Simulate sending quote text as "title"
+                body: newQuoteCategory // Simulate sending category as "body"
+            })
+        });
+
+        const result = await response.json();
+        console.log("New quote added to server:", result);
+        return result;  // Return the added quote from server
+    } catch (error) {
+        console.error('Error posting quote:', error);
+    }
+}
+
+// Simulate fetching quotes from the server
 async function fetchQuotesFromServer() {
     try {
-        // Simulating fetching updated data from the server (mock response)
         const response = await fetch(SERVER_URL);
         const data = await response.json();
 
-        // Assuming the mock server returns an array of posts
         // Simulate that server data is being updated by the mock server
         const serverQuotes = data.map(item => ({
             text: item.title,
@@ -28,10 +49,7 @@ async function fetchQuotesFromServer() {
     }
 }
 
-// Periodically check for new data from the server (every 10 seconds)
-setInterval(fetchQuotesFromServer, 10000); // Set to 10 seconds for testing purposes
-
-// Function to resolve data sync and handle conflicts
+// Resolve the syncing of server data and handle conflicts
 function resolveDataSync(serverQuotes) {
     const localQuotesSet = new Set(quotes.map(quote => quote.text));
     const newServerQuotes = serverQuotes.filter(quote => !localQuotesSet.has(quote.text));
@@ -150,6 +168,9 @@ function addQuote() {
     // Update categories in the dropdown if a new category is added
     populateCategories();
     
+    // Post new quote to the server
+    postQuoteToServer(newQuoteText, newQuoteCategory);
+
     document.getElementById("newQuoteText").value = "";
     document.getElementById("newQuoteCategory").value = "";
     alert("Quote added successfully!");
