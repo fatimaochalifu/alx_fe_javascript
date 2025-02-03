@@ -1,65 +1,64 @@
-// Fetch Quotes from Server
-async function fetchQuotesFromServer() {
-    try {
-        const response = await fetch("https://jsonplaceholder.typicode.com/posts");
-        const quotes = await response.json();
-        displayQuotes(quotes);
-    } catch (error) {
-        console.error("Error fetching quotes:", error);
-    }
+let localQuotes = [];  // In-memory storage for quotes (instead of localStorage)
+const apiUrl = "https://jsonplaceholder.typicode.com/posts";
+
+// Function to simulate fetching quotes from the server
+function fetchQuotesFromServer() {
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Fetched Quotes: ", data);
+            localQuotes = data; // Store fetched quotes in the localQuotes array
+            updateQuoteDisplay(); // Update the display after fetching quotes
+        })
+        .catch(error => console.error("Error fetching quotes: ", error));
 }
 
-// Display Quotes in the UI
-function displayQuotes(quotes) {
-    const quotesContainer = document.getElementById("quotesContainer");
-    quotesContainer.innerHTML = ""; // Clear existing quotes
+// Function to post a new quote to the server
+function postQuoteToServer(newQuote) {
+    const quoteData = {
+        title: newQuote,
+        body: newQuote,
+        userId: 1
+    };
 
-    quotes.forEach(quote => {
+    fetch(apiUrl, {
+        method: "POST",
+        body: JSON.stringify(quoteData),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Posted New Quote: ", data);
+        localQuotes.push(data); // Add the new quote to the localQuotes array
+        updateQuoteDisplay(); // Update the display after posting
+    })
+    .catch(error => console.error("Error posting new quote: ", error));
+}
+
+// Function to update the display of quotes on the page
+function updateQuoteDisplay() {
+    const quotesContainer = document.getElementById("quotesContainer");
+    quotesContainer.innerHTML = ""; // Clear previous quotes
+
+    localQuotes.forEach(quote => {
         const quoteElement = document.createElement("div");
-        quoteElement.textContent = quote.title; // Display title as the quote
+        quoteElement.classList.add("quote");
+        quoteElement.textContent = `${quote.title}: ${quote.body}`;
         quotesContainer.appendChild(quoteElement);
     });
 }
 
-// Post a New Quote
-async function postQuoteToServer(newQuote) {
-    try {
-        const response = await fetch("https://jsonplaceholder.typicode.com/posts", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(newQuote),
-        });
-        const postedQuote = await response.json();
-        console.log("New quote posted:", postedQuote);
-    } catch (error) {
-        console.error("Error posting quote:", error);
+// Event listeners for the buttons
+document.getElementById("syncQuotesButton").addEventListener("click", fetchQuotesFromServer);
+
+document.getElementById("postQuoteButton").addEventListener("click", function () {
+    const newQuote = prompt("Enter a new quote:");
+    if (newQuote) {
+        postQuoteToServer(newQuote);
     }
-}
-
-// Handle Sync Quotes Button
-document.getElementById("syncQuotesButton").addEventListener("click", function() {
-    fetchQuotesFromServer();
 });
 
-// Handle Post Quote Button
-document.getElementById("postQuoteButton").addEventListener("click", function() {
-    const newQuote = {
-        title: "This is a new quote",
-        body: "Quote content",
-        userId: 1,
-    };
-    postQuoteToServer(newQuote);
-});
-
-// Periodic Syncing with Timeout (instead of setInterval)
-function periodicSync() {
-    fetchQuotesFromServer();
-    setTimeout(periodicSync, 60000); // Sync every 60 seconds
-}
-
-// Start periodic syncing when the page loads
-window.addEventListener("load", function() {
-    periodicSync();
-});
+// Call fetchQuotesFromServer immediately to load initial data
+fetchQuotesFromServer();
