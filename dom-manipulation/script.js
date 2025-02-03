@@ -1,48 +1,44 @@
-document.addEventListener('DOMContentLoaded', function () {
+// Simulating a server request with async/await
 
-    // Sample data from the server (simulated)
-    const serverQuotes = [
-        { id: 1, text: "The only limit to our realization of tomorrow is our doubts of today.", author: "Franklin D. Roosevelt" },
-        { id: 2, text: "Do not wait to strike till the iron is hot, but make it hot by striking.", author: "William Butler Yeats" },
-        { id: 3, text: "Everything you can imagine is real.", author: "Pablo Picasso" }
-    ];
+async function fetchQuotesFromServer() {
+    try {
+        // Fetching data from the mock server (JSONPlaceholder)
+        const response = await fetch("https://jsonplaceholder.typicode.com/posts");
+        const data = await response.json();
 
-    // Simulating a fetch from server after a delay
-    function fetchQuotesFromServer() {
+        // Simulating a delay like fetching data from a real server
         return new Promise((resolve) => {
             setTimeout(() => {
-                resolve(serverQuotes);
-            }, 2000);  // Simulating server delay
+                resolve(data);
+            }, 1000); // 1 second delay for simulation
         });
+    } catch (error) {
+        console.error('Error fetching quotes:', error);
     }
+}
 
-    // Function to display quotes on the page
-    function displayQuotes(quotes) {
-        const quotesList = document.getElementById('quotesList');
-        quotesList.innerHTML = '';  // Clear the existing quotes
+// Function to sync data
+async function syncQuotes() {
+    const quotes = await fetchQuotesFromServer();
+    displayQuotes(quotes);
+}
+
+// Function to display quotes on the page
+function displayQuotes(quotes) {
+    const quotesContainer = document.getElementById('quotesContainer');
+
+    if (quotes && quotes.length > 0) {
+        quotesContainer.innerHTML = ''; // Clear existing content
         quotes.forEach(quote => {
-            const quoteDiv = document.createElement('div');
-            quoteDiv.classList.add('quote');
-            quoteDiv.innerHTML = `<p>"${quote.text}"</p><span>- ${quote.author}</span>`;
-            quotesList.appendChild(quoteDiv);
+            const quoteElement = document.createElement('div');
+            quoteElement.classList.add('quote');
+            quoteElement.innerHTML = `<p>${quote.title}</p><p>${quote.body}</p>`;
+            quotesContainer.appendChild(quoteElement);
         });
+    } else {
+        quotesContainer.innerHTML = 'No quotes available.';
     }
+}
 
-    // Fetch quotes and display them
-    function syncQuotes() {
-        fetchQuotesFromServer()
-            .then(quotes => {
-                displayQuotes(quotes);
-                alert("Quotes have been synced successfully!");
-            })
-            .catch(err => {
-                console.error("Error fetching quotes:", err);
-            });
-    }
-
-    // Attach the event listener to the button
-    const syncButton = document.getElementById('syncButton');
-    if (syncButton) {
-        syncButton.addEventListener('click', syncQuotes);
-    }
-});
+// Event listener for Sync Quotes button
+document.getElementById('syncQuotesButton').addEventListener('click', syncQuotes);
