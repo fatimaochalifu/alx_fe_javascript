@@ -1,26 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quote Sync App</title>
 </head>
+
 <body>
-    <h1>Quote Sync App</h1>
-    
-    <div id="quote-container">
-        <h2>Local Quotes</h2>
-        <ul id="quote-list"></ul>
-    </div>
 
-    <button id="sync-button">Sync with Server</button>
-    <p id="sync-status"></p>
+    <div class="container">
+        <h1>Quote Sync App</h1>
+        <button id="syncButton">Sync Quotes</button>
 
-    <div id="conflict-notification" style="display: none;">
-        <p>Conflict detected! Server data has been updated.</p>
-        <button id="resolve-conflict">Resolve Conflict</button>
+        <div id="quotesList">
+            <!-- Quotes will be displayed here -->
+        </div>
     </div>
 
     <script src="script.js"></script>
 </body>
+
 </html>
