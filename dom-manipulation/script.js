@@ -250,3 +250,36 @@ const syncButton = document.createElement("button");
 syncButton.innerText = "Sync Quotes with Server";
 syncButton.onclick = syncQuotes;
 document.body.appendChild(syncButton);
+
+async function fetchQuotes() {
+    try {
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=5');
+        const quotes = await response.json();
+        return quotes;
+    } catch (error) {
+        console.error("Error fetching quotes:", error);
+        return [];
+    }
+}
+
+async function syncQuotes() {
+    const serverQuotes = await fetchQuotes();
+    
+    localStorage.setItem('quotes', JSON.stringify(serverQuotes));
+    displayQuotes(serverQuotes);
+}
+
+function displayQuotes(quotes) {
+    const container = document.getElementById('quoteContainer');
+    container.innerHTML = "";
+    quotes.forEach(quote => {
+        const quoteElement = document.createElement('p');
+        quoteElement.textContent = `💬 ${quote.title}`;
+        container.appendChild(quoteElement);
+    });
+}
+
+setInterval(syncQuotes, 30000); // Auto-sync every 30 seconds
+
+document.getElementById('syncButton').addEventListener('click', syncQuotes);
+
