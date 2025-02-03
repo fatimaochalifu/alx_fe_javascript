@@ -1,64 +1,93 @@
-let localQuotes = [];  // In-memory storage for quotes (instead of localStorage)
-const apiUrl = "https://jsonplaceholder.typicode.com/posts";
-
-// Function to simulate fetching quotes from the server
+// Simulate fetching quotes from the server
 function fetchQuotesFromServer() {
-    fetch(apiUrl)
+    // Using fetch to simulate getting data from the server
+    fetch('https://jsonplaceholder.typicode.com/posts')
         .then(response => response.json())
-        .then(data => {
-            console.log("Fetched Quotes: ", data);
-            localQuotes = data; // Store fetched quotes in the localQuotes array
-            updateQuoteDisplay(); // Update the display after fetching quotes
+        .then(quotes => {
+            // Update localStorage with the fetched quotes
+            localStorage.setItem('quotes', JSON.stringify(quotes));
+            // Display the quotes on the page
+            displayQuotes();
         })
-        .catch(error => console.error("Error fetching quotes: ", error));
+        .catch(error => console.error('Error fetching quotes:', error));
 }
 
-// Function to post a new quote to the server
-function postQuoteToServer(newQuote) {
-    const quoteData = {
-        title: newQuote,
-        body: newQuote,
-        userId: 1
+// Function to simulate posting a new quote to the server
+function postNewQuote(quote) {
+    const newQuote = {
+        title: quote
     };
 
-    fetch(apiUrl, {
-        method: "POST",
-        body: JSON.stringify(quoteData),
+    // Simulate sending data to the server
+    fetch('https://jsonplaceholder.typicode.com/posts', {
+        method: 'POST',
+        body: JSON.stringify(newQuote),
         headers: {
-            "Content-Type": "application/json"
+            'Content-Type': 'application/json'
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Posted New Quote: ", data);
-        localQuotes.push(data); // Add the new quote to the localQuotes array
-        updateQuoteDisplay(); // Update the display after posting
-    })
-    .catch(error => console.error("Error posting new quote: ", error));
+        .then(response => response.json())
+        .then(data => {
+            // Update localStorage with the newly posted quote
+            const storedQuotes = JSON.parse(localStorage.getItem('quotes')) || [];
+            storedQuotes.push(data);
+            localStorage.setItem('quotes', JSON.stringify(storedQuotes));
+            // Display the updated quotes
+            displayQuotes();
+        })
+        .catch(error => console.error('Error posting quote:', error));
 }
 
-// Function to update the display of quotes on the page
-function updateQuoteDisplay() {
-    const quotesContainer = document.getElementById("quotesContainer");
-    quotesContainer.innerHTML = ""; // Clear previous quotes
+// Function to display the quotes from localStorage
+function displayQuotes() {
+    const quotesContainer = document.getElementById('quotesContainer');
+    quotesContainer.innerHTML = ''; // Clear any existing quotes
 
-    localQuotes.forEach(quote => {
-        const quoteElement = document.createElement("div");
-        quoteElement.classList.add("quote");
-        quoteElement.textContent = `${quote.title}: ${quote.body}`;
+    // Get quotes from localStorage
+    const quotes = JSON.parse(localStorage.getItem('quotes')) || [];
+    quotes.forEach(quote => {
+        const quoteElement = document.createElement('div');
+        quoteElement.innerText = quote.title;
         quotesContainer.appendChild(quoteElement);
     });
 }
 
-// Event listeners for the buttons
-document.getElementById("syncQuotesButton").addEventListener("click", fetchQuotesFromServer);
+// Function to handle syncing quotes and resolving conflicts
+function syncQuotes() {
+    // Fetch new quotes from the server and update localStorage
+    fetchQuotesFromServer();
 
-document.getElementById("postQuoteButton").addEventListener("click", function () {
-    const newQuote = prompt("Enter a new quote:");
-    if (newQuote) {
-        postQuoteToServer(newQuote);
+    // Compare and resolve conflicts (server data takes precedence)
+    const serverQuotes = JSON.parse(localStorage.getItem('quotes')) || [];
+    const localQuotes = JSON.parse(localStorage.getItem('localQuotes')) || [];
+
+    // Conflict resolution: if server data is newer, update localStorage
+    if (serverQuotes.length > localQuotes.length) {
+        localStorage.setItem('localQuotes', JSON.stringify(serverQuotes));
+        alert('Data synced from server, conflicts resolved.');
+    } else {
+        alert('No conflicts, data is up to date.');
+    }
+
+    displayQuotes();
+}
+
+// Button listeners for triggering actions
+document.getElementById('syncQuotesButton').addEventListener('click', function() {
+    syncQuotes();
+});
+
+document.getElementById('postQuoteButton').addEventListener('click', function() {
+    const quote = prompt('Enter a new quote:');
+    if (quote) {
+        postNewQuote(quote);
     }
 });
 
-// Call fetchQuotesFromServer immediately to load initial data
-fetchQuotesFromServer();
+// Initialize the app by displaying existing quotes
+function initialize() {
+    displayQuotes();
+}
+
+// Call the initialize function when the page loads
+initialize();
