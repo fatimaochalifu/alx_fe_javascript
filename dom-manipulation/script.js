@@ -17,6 +17,24 @@ async function fetchQuotesFromServer() {
     }
 }
 
+// Function to post new data to the server (using POST)
+async function postQuoteToServer(quote) {
+    try {
+        const response = await fetch("https://jsonplaceholder.typicode.com/posts", {
+            method: "POST",  // POST method to send data
+            headers: {
+                "Content-Type": "application/json",  // Indicating the content type is JSON
+            },
+            body: JSON.stringify(quote)  // Converting JavaScript object to JSON string
+        });
+
+        const data = await response.json();  // Handling the response
+        console.log('Posted data:', data);
+    } catch (error) {
+        console.error('Error posting quote:', error);
+    }
+}
+
 // Function to sync data
 async function syncQuotes() {
     const quotes = await fetchQuotesFromServer();
@@ -42,3 +60,14 @@ function displayQuotes(quotes) {
 
 // Event listener for Sync Quotes button
 document.getElementById('syncQuotesButton').addEventListener('click', syncQuotes);
+
+// Example of posting a new quote to the server
+const newQuote = {
+    title: "New Quote",
+    body: "This is a new quote posted via the server."
+};
+
+// Example: Posting a new quote when a button is clicked
+document.getElementById('postQuoteButton').addEventListener('click', () => {
+    postQuoteToServer(newQuote);
+});
